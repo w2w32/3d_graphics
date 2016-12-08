@@ -1,0 +1,167 @@
+<!doctype HTML>
+<html>
+<head>
+<script type="text/javascript">
+
+</script>
+</head>
+<body bgcolor="#ffffff" onload="init()">
+<canvas height="600" width="1000" id="can0" onclick=""></canvas>
+<script type="text/javascript">
+var can;
+var ctx;
+var points=[];
+
+var zoom=10;
+
+var zscale=5;
+var eyeZ=4;
+var MX,MY;
+var baseX,baseY,baseZ;
+//[x (left),y(up),z(out of screen)]
+var cube1;
+var cube2;
+
+function animate(){
+setInterval(Draw,25)
+}
+function init(){
+	can=document.getElementById("can0");
+	ctx=can.getContext("2d");
+	can0.addEventListener("mousemove",function(){var e=window.event ? window.event:e;MX=(e.offsetX-500)/zoom;MY=(300-e.offsetY)/zoom;});
+	cube1=new Shape(60,0,5,15,15,-5);
+	cube2=new Shape(-180,-120,-60,40,40,40);
+	cube3=new Shape(0,0,-50,10,40,40);
+	animate();
+}
+
+function getPoint(p){
+	return [zoom*p[0]*eyeZ/(eyeZ-(p[2]/2)),zoom*p[1]*eyeZ/(eyeZ-(p[2]/2))];
+	//y1x0/(x0-x1),z1x0/(x0-x1)
+}
+var check;
+function Shape(x,y,z,width,height,depth,xang,yang,zang){
+	this.vert=[];
+	this.x=x;
+	this.y=y;
+	this.z=z;
+	this.height=height;
+	this.width=width;
+	this.depth=depth;
+	this.xvel=0;
+	this.yvel=0;
+	this.zvel=0;
+	this.xang=0;
+	this.yang=0;
+	this.zang=0;
+	
+	this.orient=function(){
+	var output;
+		for(var i=0;i<this.vert.length;i++){
+			
+	//x axis: pitch
+		output=[];
+		output[0]=this.vert[i][0];
+		output[1]=Math.cos(this.xang)*(this.vert[i][1]-this.y)-Math.sin(this.xang)*(this.vert[i][2]-this.z)+this.y;
+		output[2]=Math.sin(this.xang)*(this.vert[i][1]-this.y)+Math.cos(this.xang)*(this.vert[i][2]-this.z)+this.z;
+		this.vert[i]=output;
+		
+	//y axis: yaw
+		output=[];
+		output[0]=Math.cos(this.yang)*(this.vert[i][0]-this.x)+Math.sin(this.yang)*(this.vert[i][2]-this.z)+this.x;		
+		output[1]=this.vert[i][1];
+		output[2]=-Math.sin(this.yang)*(this.vert[i][0]-this.x)+Math.cos(this.yang)*(this.vert[i][2]-this.z)+this.z;
+		this.vert[i]=output;
+		
+	//z axis: roll
+		output=[];
+		output[0]=Math.cos(this.zang)*(this.vert[i][0]-this.x)-Math.sin(this.zang)*(this.vert[i][1]-this.y)+this.x;
+		output[1]=Math.sin(this.zang)*(this.vert[i][0]-this.x)+Math.cos(this.zang)*(this.vert[i][1]-this.y)+this.y;
+		output[2]=this.vert[i][2];
+		this.vert[i]=output;	
+	}
+}	
+	
+	this.update=function(){
+		this.x+=this.xvel;
+		this.y+=this.yvel;
+		this.z+=this.zvel;
+		if(this.z>=-200){
+			this.vert=[[this.x-this.width/2,this.y-this.height/2,this.z+this.depth/2],
+			[this.x+this.width/2,this.y-this.height/2,this.z+this.depth/2],
+			[this.x+this.width/2,this.y+this.height/2,this.z+this.depth/2],
+			[this.x-this.width/2,this.y+this.height/2,this.z+this.depth/2],
+			[this.x-this.width/2,this.y-this.height/2,this.z-this.depth/2],
+			[this.x+this.width/2,this.y-this.height/2,this.z-this.depth/2],
+			[this.x+this.width/2,this.y+this.height/2,this.z-this.depth/2],
+			[this.x-this.width/2,this.y+this.height/2,this.z-this.depth/2]];
+			this.orient();
+		
+		}
+
+	}
+	this.draw=function(){
+		for(var i=0;i<this.vert.length;i++){
+			points[i]=[];
+			points[i][0]=500+getPoint(this.vert[i])[0];
+			points[i][1]=300-getPoint(this.vert[i])[1];
+	}
+		ctx.beginPath()
+		ctx.moveTo(points[0][0],points[0][1]);
+		ctx.lineTo(points[1][0],points[1][1]);
+		ctx.lineTo(points[2][0],points[2][1]);
+		ctx.lineTo(points[3][0],points[3][1]);
+		ctx.lineTo(points[0][0],points[0][1]);
+		ctx.lineTo(points[4][0],points[4][1]);
+		ctx.lineTo(points[5][0],points[5][1]);
+		ctx.lineTo(points[6][0],points[6][1]);
+		ctx.lineTo(points[7][0],points[7][1]);
+		ctx.lineTo(points[4][0],points[4][1]);
+		ctx.stroke();
+		ctx.beginPath();
+		ctx.moveTo(points[1][0],points[1][1]);
+		ctx.lineTo(points[5][0],points[5][1]);
+		ctx.stroke();
+		ctx.beginPath();
+		ctx.moveTo(points[2][0],points[2][1]);
+		ctx.lineTo(points[6][0],points[6][1]);
+		ctx.stroke();
+		ctx.beginPath();
+		ctx.moveTo(points[3][0],points[3][1]);
+		ctx.lineTo(points[7][0],points[7][1]);
+		ctx.stroke();
+	}
+
+}
+
+function Draw(){	
+
+	cube1.x=MX;
+	cube1.y=MY;
+	cube1.zang+=Math.PI/60;
+	//cube1.z;
+	
+	cube2.yang+=Math.PI/120;
+	cube2.zang+=Math.PI/120;
+
+	cube3.xang=-MY/15;
+	cube3.yang=MX/15;
+	
+	cube1.update();
+	
+	cube2.update();
+	
+	cube3.update();
+
+	ctx.clearRect(0,0,1000,600);
+	
+	cube1.draw();
+	cube2.draw();
+	cube3.draw();
+
+}
+
+
+</script>
+</body>
+</html>
